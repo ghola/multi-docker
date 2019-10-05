@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t ghola/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true ghola/react-test npm test
+
+after_success:
+  - docker build -t ghola/multi-client ./client
+  - docker build -t ghola/multi-nginx ./nginx
+  - docker build -t ghola/multi-server ./server
+  - docker build -t ghola/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push ghola/multi-client
+  - docker push ghola/multi-nginx
+  - docker push ghola/multi-server
+  - docker push ghola/multi-worker
